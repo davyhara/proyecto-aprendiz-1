@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clima en vivo — davyhara</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 14px;
+      color: #555;
+      letter-spacing: 0.3em;
+      margin-bottom: 40px;
+    }
+
+    .buscador {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+
+    input {
+      padding: 14px 20px;
+      background: #111;
+      border: 1px solid #222;
+      color: white;
+      font-size: 16px;
+      width: 250px;
+      font-family: 'Segoe UI', sans-serif;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #00ff88;
+    }
+
+    button {
+      padding: 14px 24px;
+      background: #00ff88;
+      color: #000;
+      border: none;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00cc70;
+    }
+
+    .resultado {
+      text-align: center;
+      display: none;
+    }
+
+    .ciudad {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .temperatura {
+      font-size: 80px;
+      font-weight: 900;
+      color: #00ff88;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .descripcion {
+      font-size: 18px;
+      color: #888;
+      text-transform: capitalize;
+      margin-bottom: 30px;
+    }
+
+    .detalles {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .detalle {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      padding: 16px 24px;
+      text-align: center;
+    }
+
+    .detalle span {
+      display: block;
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 0.2em;
+      margin-bottom: 6px;
+    }
+
+    .detalle strong {
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .error {
+      color: #ff4444;
+      font-size: 14px;
+      display: none;
+    }
+
+    .cargando {
+      color: #555;
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>CLIMA EN VIVO — davyhara.dev</h1>
+
+  <div class="buscador">
+    <input type="text" id="inputCiudad" placeholder="Escribe una ciudad..." />
+    <button onclick="buscarClima()">Buscar</button>
+  </div>
+
+  <p class="cargando" id="cargando">Buscando...</p>
+  <p class="error" id="error">Ciudad no encontrada. Intenta de nuevo.</p>
+
+  <div class="resultado" id="resultado">
+    <div class="ciudad" id="ciudad"></div>
+    <div class="temperatura" id="temperatura"></div>
+    <div class="descripcion" id="descripcion"></div>
+    <div class="detalles">
+      <div class="detalle">
+        <span>SENSACIÓN</span>
+        <strong id="sensacion"></strong>
+      </div>
+      <div class="detalle">
+        <span>HUMEDAD</span>
+        <strong id="humedad"></strong>
+      </div>
+      <div class="detalle">
+        <span>VIENTO</span>
+        <strong id="viento"></strong>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = "328e808d036eee6121ec8f67d7bfe234"; // 👈 Reemplaza aquí
+
+    async function buscarClima() {
+      const ciudad = document.getElementById("inputCiudad").value;
+
+      if (!ciudad) return;
+
+      // Mostrar cargando
+      document.getElementById("cargando").style.display = "block";
+      document.getElementById("error").style.display = "none";
+      document.getElementById("resultado").style.display = "none";
+
+      try {
+        // Aquí está la magia — llamamos a la API
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad}&appid=${API_KEY}&units=metric&lang=es`;
+        const respuesta = await fetch(url);
+        const datos = await respuesta.json();
+
+        if (datos.cod !== 200) {
+          throw new Error("Ciudad no encontrada");
+        }
+
+        // Llenamos la pantalla con los datos reales
+        document.getElementById("ciudad").textContent = `${datos.name}, ${datos.sys.country}`;
+        document.getElementById("temperatura").textContent = `${Math.round(datos.main.temp)}°C`;
+        document.getElementById("descripcion").textContent = datos.weather[0].description;
+        document.getElementById("sensacion").textContent = `${Math.round(datos.main.feels_like)}°C`;
+        document.getElementById("humedad").textContent = `${datos.main.humidity}%`;
+        document.getElementById("viento").textContent = `${Math.round(datos.wind.speed)} m/s`;
+
+        document.getElementById("cargando").style.display = "none";
+        document.getElementById("resultado").style.display = "block";
+
+      } catch (error) {
+        document.getElementById("cargando").style.display = "none";
+        document.getElementById("error").style.display = "block";
+      }
+    }
+
+    // Buscar también al presionar Enter
+    document.getElementById("inputCiudad").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") buscarClima();
+    });
+  </script>
+
+</body>
+</html>
